@@ -1,0 +1,33 @@
+==========================================
+
+.gitignore - Padrão para Projetos Python
+
+==========================================
+
+Ambientes Virtuais (NUNCA suba isso para o GitHub)
+
+venv/
+env/
+.env/
+.venv/
+
+Arquivos de Cache e Compilados do Python
+
+pycache/
+*.py[cod]
+*$py.class
+*.so
+
+Arquivos temporários do OS
+
+.DS_Store
+Thumbs.db
+
+Configurações de IDE (VSCode, PyCharm)
+
+.vscode/
+.idea/
+
+Outros
+
+*.log
