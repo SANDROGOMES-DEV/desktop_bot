@@ -6,3 +6,4 @@ Lista exata de dependências para rodar o projeto
 
 streamlit>=1.30.0
 pyautogui>=0.9.54
+google-generativeai
