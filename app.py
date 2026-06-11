@@ -1,47 +1,60 @@
+import sys
+import asyncio
 import streamlit as st
 import time
+from dotenv import load_dotenv
 from core.engine import CommandEngine
 
-# ==========================================
-# Configuração de View (Front-end)
-# ==========================================
-st.set_page_config(page_title="Automator Engine", page_icon="⚙️")
+# 1. Carrega as variáveis secretas do ficheiro .env para a memória
+load_dotenv()
 
-# Singleton da Engine no Session State para não recriar a cada re-render do Streamlit
+# Corrige o WinError 10054 do ProactorEventLoop no Windows
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+# Configuração da página Streamlit
+st.set_page_config(page_title="Automator Engine AI", page_icon="⚙️", layout="wide")
+
+# Inicializa a Engine e liga a IA no estado da sessão
 if 'engine' not in st.session_state:
     st.session_state.engine = CommandEngine()
 
-st.title("⚙️ Automator Engine v2.0")
-st.markdown("Arquitetura Modular Baseada em Princípios S.O.L.I.D.")
+    # Tenta ligar a IA automaticamente (o None obriga a procurar no .env)
+    try:
+        st.session_state.engine.enable_ai(None)
+        st.session_state.ai_status = "✅ Cérebro de IA Conectado com Sucesso (Segurança Ativa)"
+    except ValueError:
+        st.session_state.ai_status = "⚠️ Modo Básico: IA Desligada (Ficheiro .env não configurado)"
+
+# ==========================================
+# View Principal (Interface do Utilizador)
+# ==========================================
+st.title("⚙️ Automator Engine v3.0 (Powered by AI)")
+st.caption(st.session_state.ai_status)
 st.markdown("---")
 
-# ==========================================
-# Componentes de UI
-# ==========================================
-comando = st.text_input("Terminal de Comando", placeholder="Ex: acesse site github.com")
+# Campo de entrada
+comando = st.text_input(
+    "Terminal de Comando",
+    placeholder="Ex: 'Mano, podes fazer o favor de pesquisar sobre Python no google?'"
+)
 
+# Botão de Execução
 if st.button("Executar Ação", type="primary", use_container_width=True):
     if comando:
-        # Feedback visual antes do processamento (especial para PyAutoGUI)
-        if "digite" in comando.lower():
-            st.warning("⏳ O bot assumirá o teclado em 3 segundos. Clique na janela desejada AGORA!")
-            # Um pequeno truque de UI para renderizar o warning antes do bloqueio de thread
+        # Se for um comando de digitação direto (sem IA), avisa sobre os 3 segundos
+        if "digite" in comando.lower() and "⚠️" in st.session_state.ai_status:
+            st.warning("⏳ O bot assumirá o teclado em 3 segundos. Clica na janela desejada AGORA!")
             time.sleep(0.1)
 
-        with st.spinner("Processando instrução na Engine..."):
-            # Delega a lógica de negócios para a camada 'core'
+        with st.spinner("O Cérebro está a processar a tua instrução..."):
+            # Envia para a Engine (que vai passar pela IA se estiver ligada)
             resultado = st.session_state.engine.process(comando)
 
-            # Tratamento da resposta
+            # Mostra o resultado final
             if resultado["status"] == "success":
                 st.success(resultado["message"])
             else:
                 st.error(resultado["message"])
     else:
-        st.warning("Por favor, forneça uma instrução válida.")
-
-# ==========================================
-# Footer
-# ==========================================
-st.markdown("---")
-st.caption("Sistema desacoplado. Pronto para integração com APIs de LLM (OpenAI/Anthropic).")
+        st.warning("Por favor, fornece uma instrução válida antes de executar.")
